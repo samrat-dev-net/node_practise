@@ -4,14 +4,15 @@
   "description": "test project",
   "main": "index.js",
   "scripts": {
-    "dev": "tsnd --respawn -r tsconfig-paths/register --pretty --transpile-only src/index.ts",
+    "dev": "tsnd --respawn -r tsconfig-paths/register --pretty --transpile-only --env-file=.env src/index.ts",
     "build": "tsc && tsc-alias",
     "start": "node ./dist"
   },
   "author": "samrat",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
