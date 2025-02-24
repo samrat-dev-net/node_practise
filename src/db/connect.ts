@@ -1,0 +1,4 @@
+import { dbConnect } from '.';
+
+dbConnect()
+
