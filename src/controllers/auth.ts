@@ -1,7 +1,9 @@
 import { Request, RequestHandler, Response } from "express"
 import crypto from 'crypto'
+import VerificationTokenModel from '@/models/verificationToken';
+import UserModel from "@/models/user";
 
-export const generateAuthLink: RequestHandler = (req, res) => {
+export const generateAuthLink: RequestHandler = async (req, res) => {
     /*
     1. Generate Unique token for every users
     2. Store that token securely inside the database
@@ -11,7 +13,19 @@ export const generateAuthLink: RequestHandler = (req, res) => {
     5. Notify user to look inside the email to get the login link
     */
 
+    const { email } = req.body
+    let user = await UserModel.findOne({ email })
+    if (!user) {
+        // create new
+        user = await UserModel.create({
+            email
+        })
+    }
     const randomToken = crypto.randomBytes(36).toString("hex")
+    var a = await VerificationTokenModel.create<{ userId: string }>({
+        userId: user._id.toString(),
+        token: randomToken,
+    })
 
     console.log(req.body)
     res.json({
