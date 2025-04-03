@@ -1,3 +1,4 @@
+import { compareSync, genSalt, genSaltSync, hashSync } from "bcrypt";
 import { model, Schema } from "mongoose";
 
 const VerificationTokenSchema = new Schema({
@@ -15,6 +16,16 @@ const VerificationTokenSchema = new Schema({
         expires: 60 * 60 * 24
     }
 })
+VerificationTokenSchema.pre('save', function (next) {
+    if (this.isModified('token')) {
+        const salt = genSaltSync(10)
+        this.token = hashSync(this.token, salt)
+    }
+    next()
+});
+VerificationTokenSchema.methods.compare = function (token: string) {
+    compareSync(token, this.token)
+}   
 const VerificationTokenModel = model(
     'VerificationTokenModel',
     VerificationTokenSchema
