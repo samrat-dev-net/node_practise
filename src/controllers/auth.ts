@@ -1,5 +1,6 @@
 import { Request, RequestHandler, Response } from "express"
 import crypto from 'crypto'
+import nodemailer from 'nodemailer'
 import { hashSync, compareSync } from "bcrypt";
 import VerificationTokenModel from '@/models/verificationToken';
 import UserModel from "@/models/user";
@@ -22,13 +23,30 @@ export const generateAuthLink: RequestHandler = async (req, res) => {
     const userId = user._id.toString()
     await VerificationTokenModel.findOneAndDelete({ userId })
     const randomToken = crypto.randomBytes(36).toString("hex")
-    var a = await VerificationTokenModel.create<{ userId: string }>({
+    await VerificationTokenModel.create<{ userId: string }>({
         userId,
         token: randomToken,
     })
 
+    const transport = nodemailer.createTransport({
+        host: "sandbox.smtp.mailtrap.io",
+        port: 2525,
+        auth: {
+            user: "d868aafb9d2cf2",
+            pass: "675c1a5d1b4d61"
+        }
+    });
+    const link = `http://localhost:3000/verify?token=${randomToken}&userId=${userId}`
+    await transport.sendMail({
+        to: user.email,
+        from: 'verification@myapp.com',
+        subject: 'Auth verification',
+        html: `<div>
+                <p>Please click on <a href="${link}">this link</a> to verify your account.</p>
+            </div>`
+    })
     res.json({
-        ok: true,
+        message: 'Please check your email for link'
     });
 };
 
