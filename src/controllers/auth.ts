@@ -5,6 +5,7 @@ import { hashSync, compareSync } from "bcrypt";
 import VerificationTokenModel from '@/models/verificationToken';
 import UserModel from "@/models/user";
 import mail from "@/utils/mail";
+import { sendErrorResponse } from "@/utils/helper";
 
 export const generateAuthLink: RequestHandler = async (req, res) => {
     const { email } = req.body
@@ -30,6 +31,41 @@ export const generateAuthLink: RequestHandler = async (req, res) => {
 
     res.json({
         message: 'Please check your email for link'
+    });
+};
+
+export const verifyAuthToken: RequestHandler = async (req, res) => {
+    const { token, userId } = req.query
+    if (typeof token !== 'string' || typeof userId !== 'string') {
+        return sendErrorResponse({
+            status: 403,
+            message: 'Invalid request!',
+            res
+        })
+    }
+    const verificationToken = await VerificationTokenModel.findOne({ userId })
+    if (!verificationToken || !verificationToken.compare(token)) {
+        return sendErrorResponse({
+            status: 403,
+            message: 'Invalid request, token mismatch!',
+            res
+        })
+    }
+    const user = await UserModel.findById(userId)
+    if(!user) {
+        return sendErrorResponse({
+            status: 500,
+            message: 'Something went wrong, user not found!',
+            res
+        })
+    }
+    await VerificationTokenModel.findByIdAndDelete(verificationToken._id)
+
+    // todo: Authentication 
+
+    res.json({
+        token,
+        userId
     });
 };
 
