@@ -5,7 +5,8 @@ import { hashSync, compareSync } from "bcrypt";
 import VerificationTokenModel from '@/models/verificationToken';
 import UserModel from "@/models/user";
 import mail from "@/utils/mail";
-import { sendErrorResponse } from "@/utils/helper";
+import { formatUserProfile, sendErrorResponse } from "@/utils/helper";
+import jwt from 'jsonwebtoken';
 
 export const generateAuthLink: RequestHandler = async (req, res) => {
     const { email } = req.body
@@ -52,7 +53,7 @@ export const verifyAuthToken: RequestHandler = async (req, res) => {
         })
     }
     const user = await UserModel.findById(userId)
-    if(!user) {
+    if (!user) {
         return sendErrorResponse({
             status: 500,
             message: 'Something went wrong, user not found!',
@@ -61,11 +62,19 @@ export const verifyAuthToken: RequestHandler = async (req, res) => {
     }
     await VerificationTokenModel.findByIdAndDelete(verificationToken._id)
 
-    // todo: Authentication 
-
-    res.json({
-        token,
-        userId
-    });
+    // todo: Authentication
+    const payload = { userId: user._id }
+    const authToken = jwt.sign(payload, process.env.JWT_SECRET!, {
+        expiresIn: '15d'
+    })
+    res.cookie('authToken', authToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV != 'development',
+        sameSite: 'strict',
+        expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
+    })
+    res.redirect(`${process.env.AUTH_SUCCESS_URL}?profile=${JSON.stringify(
+        formatUserProfile(user)
+    )}`)
 };
 
