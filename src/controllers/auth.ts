@@ -76,5 +76,7 @@ export const verifyAuthToken: RequestHandler = async (req, res) => {
     res.redirect(`${process.env.AUTH_SUCCESS_URL}?profile=${JSON.stringify(
         formatUserProfile(user)
     )}`)
+    // res.send()
 };
 
+export const sendProfileInfo : RequestHandler = async (req, res) => {};
