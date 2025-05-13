@@ -79,4 +79,8 @@ export const verifyAuthToken: RequestHandler = async (req, res) => {
     // res.send()
 };
 
-export const sendProfileInfo : RequestHandler = async (req, res) => {};
+export const sendProfileInfo : RequestHandler = async (req, res) => {
+    res.json({
+        profile: req.user,
+    })
+};
